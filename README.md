@@ -9,7 +9,32 @@ authorLink: 'https://github.com/serverless'
 authorName: 'Serverless, inc.'
 authorAvatar: 'https://avatars1.githubusercontent.com/u/13742415?s=200&v=4'
 -->
+graph TD
+    subgraph "CI/CD Automation Flow"
+        direction LR
+        Dev([fa:fa-user Developer]) -- "1. Git Push" --> GH(fa:fa-github GitHub Repo)
+        GH --> GHA{fa:fa-cogs GitHub Actions}
+        GHA -- "2. 'serverless deploy'" --> Cloud(fa:fa-cloud AWS Cloud)
+    end
 
+    subgraph "Application Data Flow (in AWS)"
+        direction TB
+        
+        subgraph "Flow A: Real-time Data Capture"
+            User([fa:fa-user-circle User Client]) -- "3. POST /capture" --> APIGW(fa:fa-server API Gateway)
+            APIGW -- "4. Triggers" --> L1(fa:fa-code Lambda: captureData)
+            L1 -- "5. Saves Data" --> S3(fa:fa-database S3 Bucket)
+        end
+        
+        subgraph "Flow B: Automated Daily Reporting"
+            CW(fa:fa-clock CloudWatch Scheduler) -- "6. Daily Trigger" --> L2(fa:fa-file-alt Lambda: generateReport)
+            L2 -- "7. Saves Report" --> S3
+        end
+    end
+
+    classDef default fill:#2d3748,stroke:#1a202c,stroke-width:2px,color:#fff;
+    classDef special fill:#2b6cb0,stroke:#2c5282,stroke-width:2px,color:#fff;
+    class Dev,User special;
 # Serverless Framework Node HTTP API on AWS
 
 This template demonstrates how to make a simple HTTP API with Node.js running on AWS Lambda and API Gateway using the Serverless Framework.
