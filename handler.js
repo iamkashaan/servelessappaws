@@ -1,18 +1,30 @@
 // In handler.js
 
 exports.captureData = async (event) => {
-  // Your code to capture data...
-  console.log("CaptureData function was called!");
-  // ...
+  console.log("v2 - CaptureData function was called!");
+
+  // You MUST return a response object with statusCode and a string body
+  const response = {
+    statusCode: 200,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      message: "Data captured successfully!",
+    }),
+  };
+
+  return response;
 };
 
+// You can add a similar return statement to your processData function
 exports.processData = async (event) => {
-  // Your code to process the daily report...
   console.log("ProcessData function was called!");
-  // ...
-};
-// In handler.js
-exports.captureData = async (event) => {
-  console.log("v2 - CaptureData function was called!"); // <--- ADD "v2"
-  // ...
+
+  const response = {
+    statusCode: 200,
+    body: JSON.stringify({ message: "Processing started." }),
+  };
+
+  return response;
 };
