@@ -1,45 +1,40 @@
-# .github/workflows/deploy.yml
+name: Deploy Serverless Application
 
-name: Deploy Serverless Data Pipeline
-
-# This workflow runs on any push to the 'main' branch
 on:
   push:
     branches:
-      - main
+      - main # Triggers the workflow on push to the main branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js v18
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x' # Use '18.x' to get the latest patch version of Node 18
-
-      # ✨ NEW: Add caching for npm packages to speed up future runs
-      - name: Cache node modules
-        id: cache-npm
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      # Use 'npm ci' for faster, more reliable installs in CI environments
-      - name: Install Dependencies
-        run: npm ci
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1 # Your deployment region
+          aws-region: us-east-1 # Change to your desired AWS region
 
-      - name: Deploy to AWS with Serverless Framework
-        run: npx serverless deploy --stage dev
+      # If the repo uses Node.js and AWS SAM
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Deploy with AWS SAM
+        run: |
+          sam build
+          sam deploy --no-confirm-changeset --no-fail-on-empty-changeset
+
+      # If the repo uses the Serverless Framework, the deploy step would be:
+      # - name: Deploy with Serverless Framework
+      #   run: |
+      #     npm install -g serverless
+      #     serverless deploy
