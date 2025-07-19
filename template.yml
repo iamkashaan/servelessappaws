@@ -10,7 +10,7 @@ Globals:
     Timeout: 10 # Timeout in seconds
     MemorySize: 128 # Memory in MB
 
-# THIS IS THE SECTION THAT WAS MISSING
+# 'Resources' is the mandatory section where you define your AWS components
 Resources:
   # 1. The S3 bucket for storing raw incoming data
   RawDataBucket:
@@ -24,8 +24,10 @@ Resources:
   CaptureDataFunction:
     Type: AWS::Serverless::Function # Defines a Lambda function
     Properties:
-      CodeUri: src/handlers/capture-data/ # Path to your Lambda function's code
-      Handler: app.handler # The file and method to execute (e.g., app.js -> handler function)
+      # --- IMPORTANT: Make sure this path matches your folder structure ---
+      CodeUri: src/handlers/capture-data/
+      # The file and method to execute (e.g., in app.js, the function is named 'handler')
+      Handler: app.handler
       Runtime: nodejs18.x # Or python3.9, etc.
       Policies:
         # Give the function permission to write to the raw data S3 bucket
@@ -42,6 +44,7 @@ Resources:
   ProcessDataFunction:
     Type: AWS::Serverless::Function
     Properties:
+      # --- IMPORTANT: Make sure this path matches your folder structure ---
       CodeUri: src/handlers/process-data/
       Handler: app.handler
       Runtime: nodejs18.x
