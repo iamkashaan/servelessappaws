@@ -25,9 +25,9 @@ Resources:
     Type: AWS::Serverless::Function # Defines a Lambda function
     Properties:
       # --- IMPORTANT: Make sure this path matches your folder structure ---
-      CodeUri: src/handlers/capture-data/
+      CodeUri: .
       # The file and method to execute (e.g., in app.js, the function is named 'handler')
-      Handler: app.handler
+      Handler: handler.captureData
       Runtime: nodejs18.x # Or python3.9, etc.
       Policies:
         # Give the function permission to write to the raw data S3 bucket
@@ -45,8 +45,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       # --- IMPORTANT: Make sure this path matches your folder structure ---
-      CodeUri: src/handlers/process-data/
-      Handler: app.handler
+      CodeUri: .
+      Handler: handler.processData
       Runtime: nodejs18.x
       Policies:
         # Give permission to read from the raw data bucket
