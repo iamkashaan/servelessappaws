@@ -1,17 +1,51 @@
-org: mohdkashaan
-app: aws-node-http-api-project
-service: aws-node-http-api-project
+# serverless.yml
+
+service: serverless-data-pipeline
+
 frameworkVersion: '3'
 
 provider:
   name: aws
-  runtime: nodejs14.x
-  region: us-east-1
+  runtime: nodejs18.x
+  region: ap-south-1 # Explicitly set to Mumbai (India)
+  stage: dev
+
+  # ✨ Define environment variables available to all functions
+  environment:
+    DATA_BUCKET_NAME: ${self:custom.dataBucketName}
+
+  # ✨ Define permissions for your functions to access S3
+  iam:
+    role:
+      statements:
+        - Effect: 'Allow'
+          Action:
+            - 's3:PutObject'
+          Resource: 'arn:aws:s3:::${self:custom.dataBucketName}/*'
 
 functions:
-  hello:
-    handler: handler.hello
+  # ✨ 1. Data Capture Function with an HTTP API trigger
+  captureData:
+    handler: handler.captureData
     events:
       - httpApi:
-          path: /
-          method: get
+          path: /capture
+          method: post
+
+  # ✨ 2. Reporting Function with a daily schedule trigger
+  generateReport:
+    handler: handler.generateReport
+    events:
+      - schedule: rate(1 day)
+
+# ✨ Define custom variables
+custom:
+  dataBucketName: my-data-pipeline-bucket-${sls:stage}-${aws:accountId}
+
+# ✨ Define the S3 bucket as a cloud resource
+resources:
+  Resources:
+    DataStorageBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.dataBucketName}
