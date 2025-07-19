@@ -8,8 +8,7 @@ language: nodeJS
 authorLink: 'https://github.com/serverless'
 authorName: 'Serverless, inc.'
 authorAvatar: 'https://avatars1.githubusercontent.com/u/13742415?s=200&v=4'
--->
-graph TD
+-->  graph TD
     subgraph "CI/CD Automation Flow"
         direction LR
         Dev([fa:fa-user Developer]) -- "1. Git Push" --> GH(fa:fa-github GitHub Repo)
