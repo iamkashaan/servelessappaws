@@ -11,3 +11,8 @@ exports.processData = async (event) => {
   console.log("ProcessData function was called!");
   // ...
 };
+// In handler.js
+exports.captureData = async (event) => {
+  console.log("v2 - CaptureData function was called!"); // <--- ADD "v2"
+  // ...
+};
