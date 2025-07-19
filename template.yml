@@ -1,51 +1,66 @@
-# serverless.yml
+# This is the standard header for a SAM template
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  A serverless application for an event-driven data processing pipeline.
 
-service: serverless-data-pipeline
+# Globals are default settings that apply to all functions
+Globals:
+  Function:
+    Timeout: 10 # Timeout in seconds
+    MemorySize: 128 # Memory in MB
 
-frameworkVersion: '3'
+# THIS IS THE SECTION THAT WAS MISSING
+Resources:
+  # 1. The S3 bucket for storing raw incoming data
+  RawDataBucket:
+    Type: AWS::S3::Bucket
 
-provider:
-  name: aws
-  runtime: nodejs18.x
-  region: ap-south-1 # Explicitly set to Mumbai (India)
-  stage: dev
+  # 2. The S3 bucket for storing processed summary reports
+  ReportsBucket:
+    Type: AWS::S3::Bucket
 
-  # ✨ Define environment variables available to all functions
-  environment:
-    DATA_BUCKET_NAME: ${self:custom.dataBucketName}
+  # 3. The Lambda function that captures data from the API
+  CaptureDataFunction:
+    Type: AWS::Serverless::Function # Defines a Lambda function
+    Properties:
+      CodeUri: src/handlers/capture-data/ # Path to your Lambda function's code
+      Handler: app.handler # The file and method to execute (e.g., app.js -> handler function)
+      Runtime: nodejs18.x # Or python3.9, etc.
+      Policies:
+        # Give the function permission to write to the raw data S3 bucket
+        - S3WritePolicy:
+            BucketName: !Ref RawDataBucket
+      Events:
+        ApiEvent:
+          Type: Api # Defines an API Gateway trigger
+          Properties:
+            Path: /data # The API path
+            Method: post # The HTTP method
 
-  # ✨ Define permissions for your functions to access S3
-  iam:
-    role:
-      statements:
-        - Effect: 'Allow'
-          Action:
-            - 's3:PutObject'
-          Resource: 'arn:aws:s3:::${self:custom.dataBucketName}/*'
+  # 4. The Lambda function that runs daily to process the data
+  ProcessDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/handlers/process-data/
+      Handler: app.handler
+      Runtime: nodejs18.x
+      Policies:
+        # Give permission to read from the raw data bucket
+        - S3ReadPolicy:
+            BucketName: !Ref RawDataBucket
+        # Give permission to write reports to the reports bucket
+        - S3WritePolicy:
+            BucketName: !Ref ReportsBucket
+      Events:
+        # Trigger this function once per day
+        ScheduledReport:
+          Type: Schedule
+          Properties:
+            Schedule: 'rate(1 day)'
 
-functions:
-  # ✨ 1. Data Capture Function with an HTTP API trigger
-  captureData:
-    handler: handler.captureData
-    events:
-      - httpApi:
-          path: /capture
-          method: post
-
-  # ✨ 2. Reporting Function with a daily schedule trigger
-  generateReport:
-    handler: handler.generateReport
-    events:
-      - schedule: rate(1 day)
-
-# ✨ Define custom variables
-custom:
-  dataBucketName: my-data-pipeline-bucket-${sls:stage}-${aws:accountId}
-
-# ✨ Define the S3 bucket as a cloud resource
-resources:
-  Resources:
-    DataStorageBucket:
-      Type: AWS::S3::Bucket
-      Properties:
-        BucketName: ${self:custom.dataBucketName}
+Outputs:
+  # Output the API endpoint URL after deployment
+  ApiURL:
+    Description: "API Gateway endpoint URL for Prod stage"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/data/"
