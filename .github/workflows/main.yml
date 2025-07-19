@@ -31,7 +31,7 @@ jobs:
       - name: Deploy with AWS SAM
         run: |
           sam build
-          sam deploy --no-confirm-changeset --no-fail-on-empty-changeset
+          sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name my-serverless-app --capabilities CAPABILITY_IAM --resolve-s3
 
       # If the repo uses the Serverless Framework, the deploy step would be:
       # - name: Deploy with Serverless Framework
